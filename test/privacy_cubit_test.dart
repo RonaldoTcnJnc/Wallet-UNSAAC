@@ -48,5 +48,14 @@ void main() {
 
     expect(find.text('S/ •••••'), findsNWidgets(3));
     expect(find.textContaining('••••'), findsWidgets);
+
+    await tester.tap(find.byTooltip('Mostrar saldo'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('S/ 1,274.60'), findsOneWidget);
+    expect(find.text('S/ 1,770.00'), findsOneWidget);
+    expect(find.text('S/ 495.40'), findsOneWidget);
+    expect(find.text('+ S/ 1,200.00'), findsOneWidget);
+    expect(find.textContaining('••••'), findsNothing);
   });
 }
