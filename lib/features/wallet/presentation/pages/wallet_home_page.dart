@@ -58,7 +58,9 @@ class _WalletHomePageState extends State<WalletHomePage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final themeMode = context.select((ThemeCubit cubit) => cubit.state.mode);
-    final hideBalance = context.select((PrivacyCubit cubit) => cubit.state.isHidden);
+    final hideBalance = context.select(
+      (PrivacyCubit cubit) => cubit.state.isHidden,
+    );
     final themeTooltip = switch (themeMode) {
       ThemeMode.light => 'Tema claro. Cambiar a tema oscuro',
       ThemeMode.dark => 'Tema oscuro. Cambiar a tema del sistema',
@@ -73,14 +75,13 @@ class _WalletHomePageState extends State<WalletHomePage> {
     return BlocBuilder<BalanceCubit, BalanceState>(
       builder: (context, state) {
         if (state is BalanceLoading || state is BalanceInitial) {
-          return const Center(child: CircularProgressIndicator());
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
         }
 
         if (state is BalanceFailure) {
-          return _ErrorView(
-            message: state.message,
-            onRetry: _reload,
-          );
+          return _ErrorView(message: state.message, onRetry: _reload);
         }
 
         final summary = (state as BalanceSuccess).summary;
@@ -136,7 +137,8 @@ class _WalletHomePageState extends State<WalletHomePage> {
                       children: [
                         for (final color in _seedPalette)
                           GestureDetector(
-                            onTap: () => context.read<ThemeCubit>().setSeedColor(color),
+                            onTap: () =>
+                                context.read<ThemeCubit>().setSeedColor(color),
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 180),
                               width: 28,
@@ -212,10 +214,7 @@ class _WalletHomePageState extends State<WalletHomePage> {
                   const _EmptyMovements()
                 else
                   for (final movement in summary.movements) ...[
-                    MovementTile(
-                      movement: movement,
-                      hideAmount: hideBalance,
-                    ),
+                    MovementTile(movement: movement, hideAmount: hideBalance),
                     const SizedBox(height: 10),
                   ],
                 const SizedBox(height: 12),
@@ -247,32 +246,36 @@ class _ErrorView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.cloud_off_rounded, size: 56, color: scheme.error),
-            const SizedBox(height: 16),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Revisa la conexión y vuelve a intentarlo.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: scheme.onSurfaceVariant),
-            ),
-            const SizedBox(height: 20),
-            FilledButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Reintentar'),
-            ),
-          ],
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.cloud_off_rounded, size: 56, color: scheme.error),
+              const SizedBox(height: 16),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Revisa la conexión y vuelve a intentarlo.',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 20),
+              FilledButton.icon(
+                onPressed: onRetry,
+                icon: const Icon(Icons.refresh_rounded),
+                label: const Text('Reintentar'),
+              ),
+            ],
+          ),
         ),
       ),
     );
