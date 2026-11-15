@@ -2,14 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wallet_unsaac/app.dart';
 import 'package:wallet_unsaac/core/config/firebase_status.dart';
+import 'package:wallet_unsaac/core/theme/theme_preferences.dart';
+
+class _MemoryThemePreferences implements ThemePreferences {
+  @override
+  Future<ThemeMode> loadMode() async => ThemeMode.system;
+
+  @override
+  Future<void> saveMode(ThemeMode mode) async {}
+}
+
+WalletApp _createApp() => WalletApp(
+  firebaseStatus: const FirebaseStatus.notConfigured(),
+  themePreferences: _MemoryThemePreferences(),
+  initialThemeMode: ThemeMode.system,
+);
 
 void main() {
   testWidgets('la pantalla principal muestra el saldo de demostración', (
     tester,
   ) async {
-    await tester.pumpWidget(
-      const WalletApp(firebaseStatus: FirebaseStatus.notConfigured()),
-    );
+    await tester.pumpWidget(_createApp());
     await tester.pumpAndSettle();
 
     expect(find.text('Wallet UNSAAC'), findsOneWidget);
@@ -25,23 +38,32 @@ void main() {
     expect(find.text('Firebase: no configurado (modo local)'), findsOneWidget);
   });
 
-  testWidgets('el botón de tema alterna MaterialApp a modo oscuro', (
+  testWidgets('el botón recorre los tres modos y refleja el modo actual', (
     tester,
   ) async {
-    await tester.pumpWidget(
-      const WalletApp(firebaseStatus: FirebaseStatus.notConfigured()),
-    );
+    await tester.pumpWidget(_createApp());
     await tester.pumpAndSettle();
 
-    MaterialApp app() =>
-        tester.widget<MaterialApp>(find.byType(MaterialApp));
+    MaterialApp app() => tester.widget<MaterialApp>(find.byType(MaterialApp));
 
     expect(app().themeMode, ThemeMode.system);
+    expect(
+      find.byTooltip('Tema del sistema. Cambiar a tema claro'),
+      findsOneWidget,
+    );
 
-    await tester.tap(find.byTooltip('Activar tema oscuro'));
+    await tester.tap(find.byTooltip('Tema del sistema. Cambiar a tema claro'));
     await tester.pumpAndSettle();
 
+    expect(app().themeMode, ThemeMode.light);
+    expect(find.byTooltip('Tema claro. Cambiar a tema oscuro'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Tema claro. Cambiar a tema oscuro'));
+    await tester.pumpAndSettle();
     expect(app().themeMode, ThemeMode.dark);
-    expect(find.byTooltip('Activar tema claro'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Tema oscuro. Cambiar a tema del sistema'));
+    await tester.pumpAndSettle();
+    expect(app().themeMode, ThemeMode.system);
   });
 }
