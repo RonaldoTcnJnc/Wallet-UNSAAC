@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wallet_unsaac/core/config/firebase_status.dart';
 import 'package:wallet_unsaac/core/privacy/privacy_cubit.dart';
 import 'package:wallet_unsaac/core/theme/theme_cubit.dart';
+import 'package:wallet_unsaac/core/theme/theme_state.dart';
 import 'package:wallet_unsaac/features/wallet/presentation/cubit/balance_cubit.dart';
 import 'package:wallet_unsaac/features/wallet/presentation/cubit/balance_state.dart';
 import 'package:wallet_unsaac/features/wallet/presentation/widgets/balance_card.dart';
@@ -44,6 +45,14 @@ class _WalletHomePageState extends State<WalletHomePage> {
         ),
       );
   }
+
+  static const List<Color> _seedPalette = [
+    Color(0xFF7A1F2B),
+    Color(0xFF3F51B5),
+    Color(0xFF1E88E5),
+    Color(0xFF2E7D32),
+    Color(0xFFFB8C00),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -116,6 +125,44 @@ class _WalletHomePageState extends State<WalletHomePage> {
                 Text(
                   'Este es el resumen de tus finanzas en noviembre de 2026.',
                   style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                ),
+                const SizedBox(height: 16),
+                BlocSelector<ThemeCubit, ThemeState, Color>(
+                  selector: (state) => state.seedColor,
+                  builder: (context, selectedSeed) {
+                    return Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      children: [
+                        for (final color in _seedPalette)
+                          GestureDetector(
+                            onTap: () => context.read<ThemeCubit>().setSeedColor(color),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 180),
+                              width: 28,
+                              height: 28,
+                              decoration: BoxDecoration(
+                                color: color,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: selectedSeed == color
+                                      ? theme.colorScheme.onSurface
+                                      : Colors.transparent,
+                                  width: 2,
+                                ),
+                              ),
+                              child: selectedSeed == color
+                                  ? Icon(
+                                      Icons.check_rounded,
+                                      size: 16,
+                                      color: Colors.white,
+                                    )
+                                  : null,
+                            ),
+                          ),
+                      ],
+                    );
+                  },
                 ),
                 const SizedBox(height: 20),
                 BalanceCard(

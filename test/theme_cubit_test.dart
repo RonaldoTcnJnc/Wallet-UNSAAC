@@ -1,6 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:wallet_unsaac/core/theme/app_theme.dart';
 import 'package:wallet_unsaac/core/theme/theme_cubit.dart';
 import 'package:wallet_unsaac/core/theme/theme_preferences.dart';
 import 'package:wallet_unsaac/core/theme/theme_state.dart';
@@ -35,6 +36,25 @@ void main() {
         ThemeMode.dark,
       );
     });
+
+    test('usa el color semilla institucional por defecto', () {
+      final cubit = ThemeCubit(themePreferences: _MemoryThemePreferences());
+      expect(cubit.state.seedColor, const Color(0xFF7A1F2B));
+      expect(
+        AppTheme.light(seedColor: cubit.state.seedColor).colorScheme.primary,
+        ColorScheme.fromSeed(
+          seedColor: cubit.state.seedColor,
+          brightness: Brightness.light,
+        ).primary,
+      );
+    });
+
+    blocTest<ThemeCubit, ThemeState>(
+      'setSeedColor actualiza el color semilla del estado',
+      build: () => ThemeCubit(themePreferences: _MemoryThemePreferences()),
+      act: (cubit) => cubit.setSeedColor(Colors.blue),
+      expect: () => const [ThemeState(seedColor: Colors.blue)],
+    );
 
     blocTest<ThemeCubit, ThemeState>(
       'toggle recorre claro, oscuro y sistema',

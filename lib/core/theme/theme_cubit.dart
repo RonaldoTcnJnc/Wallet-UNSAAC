@@ -34,4 +34,9 @@ class ThemeCubit extends Cubit<ThemeState> {
   }
 
   Future<void> useSystemMode() => setMode(ThemeMode.system);
+
+  Future<void> setSeedColor(Color color) async {
+    if (color == state.seedColor) return;
+    emit(state.copyWith(seedColor: color));
+  }
 }

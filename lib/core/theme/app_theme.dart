@@ -7,15 +7,18 @@ import 'package:flutter/material.dart';
 /// modos claro y oscuro, de modo que no se codifican colores sueltos en las
 /// pantallas.
 abstract final class AppTheme {
-  static const Color seed = Color(0xFF7A1F2B);
+  static const Color defaultSeed = Color(0xFF7A1F2B);
+  static const Color seed = defaultSeed;
 
-  static ThemeData light() => _build(Brightness.light);
+  static ThemeData light({Color? seedColor}) =>
+      _build(Brightness.light, seedColor ?? defaultSeed);
 
-  static ThemeData dark() => _build(Brightness.dark);
+  static ThemeData dark({Color? seedColor}) =>
+      _build(Brightness.dark, seedColor ?? defaultSeed);
 
-  static ThemeData _build(Brightness brightness) {
+  static ThemeData _build(Brightness brightness, Color seedColor) {
     final scheme = ColorScheme.fromSeed(
-      seedColor: seed,
+      seedColor: seedColor,
       brightness: brightness,
     );
 
