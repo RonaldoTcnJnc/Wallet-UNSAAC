@@ -51,7 +51,6 @@ android/key.properties
 *.jks
 *.keystore
 
-# Nota: lib/firebase_options.dart NO se ignora porque el curso parte de una
-# plantilla con marcadores de posición. En un proyecto real, evalúa si tus
-# claves deben quedar fuera del repositorio y restringe la API key en Google
-# Cloud Console.
+# lib/firebase_options.dart se versiona: contiene configuración pública de
+# cliente generada por FlutterFire, no credenciales de cuenta de servicio.
+# Restringe las API keys y protege los datos con reglas de Firebase.

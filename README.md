@@ -1,36 +1,45 @@
-# Wallet UNSAAC — proyecto base de la Sesión 1
+# Wallet UNSAAC
 
-Aplicativo de finanzas personales del curso **Desarrollo de Software II
-(IF616AIN)** de la Escuela Profesional de Ingeniería Informática y de Sistemas
-de la UNSAAC.
+Aplicativo académico de finanzas personales del curso **Desarrollo de Software II**
+de la Escuela Profesional de Ingeniería Informática y de Sistemas de la UNSAAC.
+Autor: **RonaldoTcnJnc**.
 
-Esta es la versión de la **Sesión 1 (lunes 9 de noviembre de 2026)**: arquitectura
-por capas, patrón BLoC con `ThemeCubit`, Material 3 y conexión preparada para
-Firebase. Los datos son de demostración y viven en memoria; la autenticación y
-Firestore se incorporan en las sesiones 3 y 5.
+La aplicación usa arquitectura por capas, Material 3, estado con Cubit y Firebase
+Core configurado para Android y Web. El Reto 1 añade persistencia del tema. Los
+movimientos financieros siguen siendo datos de demostración en memoria; no se ha
+implementado autenticación ni persistencia en Firestore.
+
+## Funcionalidad actual
+
+- Resumen con ingresos, egresos, saldo y siete movimientos de demostración.
+- Tema claro, oscuro o del sistema, con la preferencia guardada entre sesiones.
+- Firebase Core inicializado en Android y Web. Linux puede ejecutar la app en modo
+   local; FlutterFire no ofrece soporte oficial directo para Firebase en Linux.
+- Retos 2, 3 y 4 todavía pendientes: saldo privado, estados del saldo con Cubit y
+   color semilla configurable.
 
 ## Estado verificado
 
 | Verificación | Resultado |
 |---|---|
-| `flutter --version` | Flutter 3.44.9 · Dart 3.12.2 (canal estable) |
+| Flutter / Dart | Flutter 3.47.8 · Dart 3.13.7 (canal estable) |
 | `flutter analyze` | Sin observaciones |
-| `flutter test` | 13 pruebas aprobadas |
-| Plataforma | Android (`applicationId` `pe.edu.unsaac.wallet_unsaac`) |
+| `flutter test` | 19 pruebas aprobadas |
+| `flutter build web` | Compilación correcta |
+| Android | Ejecutada en emulador; Firebase muestra «conectado» |
+| Firebase | Proyecto `wallet-unsaac-bb1b5`; apps Android y Web registradas |
+| Android applicationId | `pe.edu.unsaac.wallet_unsaac` |
 
-> El proyecto no incluye credenciales reales de Firebase. Mientras
-> `lib/firebase_options.dart` conserve los marcadores `REEMPLAZAR_...`, la app
-> arranca en **modo local** y muestra el estado «Firebase: no configurado».
-> Esto es intencional: permite trabajar la sesión sin depender de una cuenta de
-> Firebase y evita subir credenciales al repositorio.
+Las capturas de evidencia se guardan fuera del repositorio, en
+`../evidencias_wallet_unsaac/`: `firebase-android.png` y `firebase-web.png`.
 
 ## Requisitos
 
-- Flutter 3.44.9 o superior (canal estable) y Dart 3.12.2 o superior.
+- Flutter 3.47.8 o superior (canal estable) y Dart 3.13.7 o superior.
 - Android Studio con SDK de Android y un emulador con Google Play, o un
   dispositivo físico con depuración USB.
+- Node.js/npm, Firebase CLI y FlutterFire CLI para configurar Firebase.
 - Git.
-- Para conectar Firebase: una cuenta de Google y FlutterFire CLI.
 
 ## Puesta en marcha
 
@@ -41,29 +50,34 @@ flutter test
 flutter run
 ```
 
-La app abre con datos de demostración: saldo `S/ 1,274.60`, siete movimientos y
-un botón en la barra superior para alternar tema claro/oscuro.
+`flutter run` abre la app en el dispositivo disponible. Para Web usa
+`flutter run -d chrome`. El saldo de demostración es `S/ 1,274.60`.
 
-### Conectar Firebase (paso de la sesión)
+### Configurar Firebase
 
-1. Crear el proyecto en <https://console.firebase.google.com/>.
-2. Registrar una aplicación **Android** con el `applicationId`
-   `pe.edu.unsaac.wallet_unsaac`.
-3. Instalar y ejecutar FlutterFire CLI:
+El proyecto Firebase usado es `wallet-unsaac-bb1b5`; contiene una app Android
+(`pe.edu.unsaac.wallet_unsaac`) y una app Web. Para regenerar la configuración en
+un entorno nuevo, inicia sesión con una cuenta de Google autorizada en Firebase y
+ejecuta:
 
 ```bash
+npm install --global firebase-tools
+firebase login
 dart pub global activate flutterfire_cli
-flutterfire configure
+flutterfire configure --project=wallet-unsaac-bb1b5 --platforms=android,web
 ```
 
-4. Seleccionar el proyecto, la plataforma `android` y confirmar. El comando
-   sobrescribe `lib/firebase_options.dart` con las credenciales reales.
-5. Volver a ejecutar `flutter run`. La tarjeta inferior debe mostrar
-   «Firebase: conectado».
+FlutterFire genera `lib/firebase_options.dart`, registra las aplicaciones que
+falten y prepara la configuración Android. Ejecuta `flutter pub get` y luego
+`flutter run`; en Android y Web la tarjeta debe mostrar «Firebase: conectado».
+El archivo `android/app/google-services.json` es local y está excluido de Git; no
+lo agregues al repositorio. La configuración Android y Web se regenera con
+`flutterfire configure` cuando sea necesario.
 
-El `applicationId` se cambia en `android/app/build.gradle.kts`. Si se modifica,
-hay que registrar de nuevo la app en Firebase Console y repetir
-`flutterfire configure`.
+Si cambias el `applicationId` en `android/app/build.gradle.kts`, registra ese
+mismo identificador en Firebase Console y vuelve a ejecutar FlutterFire. Firebase
+Core no tiene soporte oficial directo de FlutterFire para Linux; esa plataforma
+abre en modo local.
 
 ## Estructura del proyecto
 
@@ -71,7 +85,7 @@ hay que registrar de nuevo la app en Firebase Console y repetir
 lib/
 ├── main.dart                      # ensureInitialized → Firebase → runApp
 ├── app.dart                       # providers, MaterialApp y tema
-├── firebase_options.dart          # plantilla que genera flutterfire configure
+├── firebase_options.dart          # opciones Android/Web generadas por FlutterFire
 ├── core/
 │   ├── config/
 │   │   ├── firebase_bootstrap.dart
@@ -79,6 +93,7 @@ lib/
 │   ├── theme/
 │   │   ├── app_theme.dart         # ColorScheme.fromSeed (claro/oscuro)
 │   │   ├── theme_cubit.dart       # lógica del tema
+│   │   ├── theme_preferences.dart # persistencia con SharedPreferences
 │   │   └── theme_state.dart       # estado inmutable con Equatable
 │   └── utils/
 │       └── money.dart             # formato de soles y fechas
@@ -102,7 +117,7 @@ lib/
                 └── movement_tile.dart
 ```
 
-La regla de dependencia es unidireccional:
+Las pruebas están en `test/`. La regla de dependencia es unidireccional:
 
 ```text
 presentation → domain ← data
@@ -117,32 +132,35 @@ El diagrama editable está en [`docs/arquitectura.md`](docs/arquitectura.md).
 ## Flujo BLoC de la sesión
 
 ```text
-Usuario pulsa el icono de tema
+La app inicia
         │
         ▼
-context.read<ThemeCubit>().toggle()      (evento / intención)
+ThemePreferences.loadMode()             (lee SharedPreferences antes de runApp)
         │
         ▼
-ThemeCubit.emit(ThemeState(mode: ...))   (nuevo estado inmutable)
+ThemeCubit(ThemeState(mode: ...))        (estado inicial recuperado)
         │
         ▼
-BlocBuilder<ThemeCubit, ThemeState>       (escucha el stream)
+Usuario pulsa el icono → toggle()        (claro → oscuro → sistema)
         │
         ▼
-MaterialApp(themeMode: state.mode)        (nueva interfaz)
+ThemeCubit emite y guarda el nuevo modo  (Equatable + SharedPreferences)
+   │
+   ▼
+BlocBuilder → MaterialApp(themeMode: state.mode)
 ```
 
 `ThemeCubit` es un **Cubit** (no un Bloc con eventos): la intención se expresa
-con un método y el estado se emite directamente. En la Sesión 2 se construirá
-un Bloc completo con eventos, para contrastar ambos enfoques.
+con un método y el estado se emite directamente. El modo elegido se carga antes
+de `runApp` y se guarda al cambiarlo. El botón recorre claro → oscuro → sistema.
 
 ## Decisiones de diseño
 
 1. **Estado inmutable con `Equatable`.** `ThemeState` implementa `props`, de
    modo que BLoC puede comparar estados por valor y evitar reconstrucciones
    innecesarias.
-2. **`ThemeMode` en el estado.** Permite claro, oscuro y «seguir al sistema»
-   sin añadir banderas redundantes.
+2. **Tema persistente.** `ThemePreferences` separa el almacenamiento del Cubit;
+   los valores ausentes o inválidos vuelven a `ThemeMode.system`.
 3. **Repositorio abstracto.** `WalletRepository` aísla la fuente de datos. En
    la Sesión 5 se reemplaza `InMemoryWalletRepository` por Firestore sin tocar
    la pantalla.
@@ -151,33 +169,32 @@ un Bloc completo con eventos, para contrastar ambos enfoques.
 5. **Permiso de Internet en el manifiesto principal.** La plantilla de Flutter
    solo lo declara en `debug` y `profile`; sin el permiso en `main`, un APK de
    release no puede hablar con Firebase ni con una API REST.
-6. **Sin secretos.** El repositorio incluye una plantilla, no credenciales.
-   `google-services.json`, `key.properties` y los almacenes de claves están en
-   `.gitignore`.
+6. **Configuración Firebase de cliente.** `lib/firebase_options.dart` contiene
+   opciones públicas de cliente generadas por FlutterFire; no contiene claves de
+   cuenta de servicio. `google-services.json`, `key.properties` y los almacenes
+   de claves se mantienen fuera del repositorio. La autorización de datos debe
+   protegerse con reglas de Firebase y restricciones de API.
 
 ## Pruebas incluidas
 
 | Archivo | Qué verifica |
 |---|---|
-| `test/theme_cubit_test.dart` | Estado inicial, `toggle`, `setMode`, `useSystemMode`. |
+| `test/theme_cubit_test.dart` | Estado inicial, ciclo de modos, `setMode` y `useSystemMode`. |
+| `test/theme_preferences_test.dart` | Guardar/recuperar, persistencia desde Cubit y fallback ante valores inválidos. |
 | `test/wallet_summary_test.dart` | Cálculo de ingresos, egresos y saldo en el dominio. |
 | `test/money_format_test.dart` | Formato `S/ 1,274.60` y fechas `dd/mm/aaaa`. |
 | `test/in_memory_wallet_repository_test.dart` | Totales de los datos de demostración. |
-| `test/widget_test.dart` | Saldo visible y cambio de `themeMode` al pulsar el botón. |
+| `test/widget_test.dart` | Saldo visible y ciclo de tres modos en la interfaz. |
 
 ## Errores frecuentes
 
 | Síntoma | Causa probable | Solución |
 |---|---|---|
-| «Firebase: no configurado» | Marcadores `REEMPLAZAR_...` | Ejecutar `flutterfire configure`. |
+| «Firebase: no configurado» | Opciones ausentes para la plataforma | Ejecutar `flutterfire configure` para Android y Web. |
 | `FirebaseException: API key not valid` | `applicationId` distinto al registrado | Registrar la app con el mismo `applicationId` y regenerar opciones. |
 | La app funciona en debug pero no en release | Falta `INTERNET` en el manifiesto principal | Verificar `android/app/src/main/AndroidManifest.xml`. |
-| `UnsupportedError` de plataforma | Se ejecutó en iOS/escritorio | La plantilla es solo Android (decisión de la unidad). |
+| Firebase no conecta en Linux | FlutterFire no soporta oficialmente Linux | La app funciona en modo local en esa plataforma. |
 | Gradle falla por ruta con acentos | Ruta del proyecto con caracteres no ASCII | Mover el proyecto a una ruta ASCII, por ejemplo `~/dev/wallet_unsaac`. |
-
-> Nota de entorno: en algunos equipos con Flutter 3.44.9, `flutter analyze`
-> falla si la ruta del proyecto contiene acentos. Es un problema del servidor de
-> análisis, no del código. Para verificarlo, copie el proyecto a una ruta ASCII.
 
 ## Referencias
 
