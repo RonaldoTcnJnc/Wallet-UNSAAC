@@ -8,6 +8,7 @@ import 'package:wallet_unsaac/core/theme/theme_preferences.dart';
 import 'package:wallet_unsaac/core/theme/theme_state.dart';
 import 'package:wallet_unsaac/features/wallet/data/repositories/in_memory_wallet_repository.dart';
 import 'package:wallet_unsaac/features/wallet/domain/repositories/wallet_repository.dart';
+import 'package:wallet_unsaac/features/wallet/presentation/cubit/balance_cubit.dart';
 import 'package:wallet_unsaac/features/wallet/presentation/pages/wallet_home_page.dart';
 
 /// Raíz de la aplicación.
@@ -47,17 +48,21 @@ class WalletApp extends StatelessWidget {
             themePreferences: themePreferences,
             initialMode: initialThemeMode,
           ),
-          child: BlocBuilder<ThemeCubit, ThemeState>(
-            builder: (context, themeState) {
-              return MaterialApp(
-                title: 'Wallet UNSAAC',
-                debugShowCheckedModeBanner: false,
-                theme: AppTheme.light(),
-                darkTheme: AppTheme.dark(),
-                themeMode: themeState.mode,
-                home: WalletHomePage(firebaseStatus: firebaseStatus),
-              );
-            },
+          child: BlocProvider(
+            create: (context) =>
+                BalanceCubit(context.read<WalletRepository>())..load(),
+            child: BlocBuilder<ThemeCubit, ThemeState>(
+              builder: (context, themeState) {
+                return MaterialApp(
+                  title: 'Wallet UNSAAC',
+                  debugShowCheckedModeBanner: false,
+                  theme: AppTheme.light(),
+                  darkTheme: AppTheme.dark(),
+                  themeMode: themeState.mode,
+                  home: WalletHomePage(firebaseStatus: firebaseStatus),
+                );
+              },
+            ),
           ),
         ),
       ),

@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wallet_unsaac/core/config/firebase_status.dart';
 import 'package:wallet_unsaac/core/privacy/privacy_cubit.dart';
 import 'package:wallet_unsaac/core/theme/theme_cubit.dart';
-import 'package:wallet_unsaac/features/wallet/domain/entities/wallet_summary.dart';
-import 'package:wallet_unsaac/features/wallet/domain/repositories/wallet_repository.dart';
+import 'package:wallet_unsaac/features/wallet/presentation/cubit/balance_cubit.dart';
+import 'package:wallet_unsaac/features/wallet/presentation/cubit/balance_state.dart';
 import 'package:wallet_unsaac/features/wallet/presentation/widgets/balance_card.dart';
 import 'package:wallet_unsaac/features/wallet/presentation/widgets/firebase_status_card.dart';
 import 'package:wallet_unsaac/features/wallet/presentation/widgets/movement_tile.dart';
@@ -24,23 +24,14 @@ class WalletHomePage extends StatefulWidget {
 }
 
 class _WalletHomePageState extends State<WalletHomePage> {
-  late Future<WalletSummary> _summaryFuture;
-
   @override
   void initState() {
     super.initState();
-    _summaryFuture = context.read<WalletRepository>().loadSummary();
+    context.read<BalanceCubit>().load();
   }
 
   Future<void> _reload() async {
-    final future = context.read<WalletRepository>().loadSummary();
-    setState(() => _summaryFuture = future);
-    try {
-      await future;
-    } on Exception {
-      // El estado de error se representa en la interfaz; aquí solo se evita
-      // que el RefreshIndicator propague la excepción.
-    }
+    await context.read<BalanceCubit>().retry();
   }
 
   void _showComingSoon(String feature) {
@@ -70,46 +61,47 @@ class _WalletHomePageState extends State<WalletHomePage> {
       ThemeMode.system => Icons.brightness_auto_outlined,
     };
 
-    return Scaffold(
-      appBar: AppBar(
-        titleSpacing: 20,
-        title: Row(
-          children: [
-            Icon(
-              Icons.account_balance_wallet_rounded,
-              color: theme.colorScheme.primary,
-            ),
-            const SizedBox(width: 8),
-            const Text(
-              'Wallet UNSAAC',
-              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            tooltip: themeTooltip,
-            icon: Icon(themeIcon),
-            onPressed: () => context.read<ThemeCubit>().toggle(),
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: FutureBuilder<WalletSummary>(
-        future: _summaryFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return _ErrorView(
-              message: 'No se pudo cargar el resumen de la billetera.',
-              onRetry: _reload,
-            );
-          }
+    return BlocBuilder<BalanceCubit, BalanceState>(
+      builder: (context, state) {
+        if (state is BalanceLoading || state is BalanceInitial) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-          final summary = snapshot.data!;
-          return RefreshIndicator(
+        if (state is BalanceFailure) {
+          return _ErrorView(
+            message: state.message,
+            onRetry: _reload,
+          );
+        }
+
+        final summary = (state as BalanceSuccess).summary;
+
+        return Scaffold(
+          appBar: AppBar(
+            titleSpacing: 20,
+            title: Row(
+              children: [
+                Icon(
+                  Icons.account_balance_wallet_rounded,
+                  color: theme.colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                const Text(
+                  'Wallet UNSAAC',
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20),
+                ),
+              ],
+            ),
+            actions: [
+              IconButton(
+                tooltip: themeTooltip,
+                icon: Icon(themeIcon),
+                onPressed: () => context.read<ThemeCubit>().toggle(),
+              ),
+              const SizedBox(width: 8),
+            ],
+          ),
+          body: RefreshIndicator(
             onRefresh: _reload,
             child: ListView(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
@@ -192,9 +184,9 @@ class _WalletHomePageState extends State<WalletHomePage> {
                 ),
               ],
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }
