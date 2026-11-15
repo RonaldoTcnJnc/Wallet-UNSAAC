@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wallet_unsaac/core/config/firebase_status.dart';
+import 'package:wallet_unsaac/core/privacy/privacy_cubit.dart';
 import 'package:wallet_unsaac/core/theme/app_theme.dart';
 import 'package:wallet_unsaac/core/theme/theme_cubit.dart';
 import 'package:wallet_unsaac/core/theme/theme_preferences.dart';
@@ -40,21 +41,24 @@ class WalletApp extends StatelessWidget {
         ),
       ],
       child: BlocProvider(
-        create: (_) => ThemeCubit(
-          themePreferences: themePreferences,
-          initialMode: initialThemeMode,
-        ),
-        child: BlocBuilder<ThemeCubit, ThemeState>(
-          builder: (context, themeState) {
-            return MaterialApp(
-              title: 'Wallet UNSAAC',
-              debugShowCheckedModeBanner: false,
-              theme: AppTheme.light(),
-              darkTheme: AppTheme.dark(),
-              themeMode: themeState.mode,
-              home: WalletHomePage(firebaseStatus: firebaseStatus),
-            );
-          },
+        create: (_) => PrivacyCubit(),
+        child: BlocProvider(
+          create: (_) => ThemeCubit(
+            themePreferences: themePreferences,
+            initialMode: initialThemeMode,
+          ),
+          child: BlocBuilder<ThemeCubit, ThemeState>(
+            builder: (context, themeState) {
+              return MaterialApp(
+                title: 'Wallet UNSAAC',
+                debugShowCheckedModeBanner: false,
+                theme: AppTheme.light(),
+                darkTheme: AppTheme.dark(),
+                themeMode: themeState.mode,
+                home: WalletHomePage(firebaseStatus: firebaseStatus),
+              );
+            },
+          ),
         ),
       ),
     );

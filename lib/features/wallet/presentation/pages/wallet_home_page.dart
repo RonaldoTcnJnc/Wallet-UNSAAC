@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wallet_unsaac/core/config/firebase_status.dart';
+import 'package:wallet_unsaac/core/privacy/privacy_cubit.dart';
 import 'package:wallet_unsaac/core/theme/theme_cubit.dart';
 import 'package:wallet_unsaac/features/wallet/domain/entities/wallet_summary.dart';
 import 'package:wallet_unsaac/features/wallet/domain/repositories/wallet_repository.dart';
@@ -57,6 +58,7 @@ class _WalletHomePageState extends State<WalletHomePage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final themeMode = context.select((ThemeCubit cubit) => cubit.state.mode);
+    final hideBalance = context.select((PrivacyCubit cubit) => cubit.state.isHidden);
     final themeTooltip = switch (themeMode) {
       ThemeMode.light => 'Tema claro. Cambiar a tema oscuro',
       ThemeMode.dark => 'Tema oscuro. Cambiar a tema del sistema',
@@ -124,7 +126,11 @@ class _WalletHomePageState extends State<WalletHomePage> {
                   style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
                 ),
                 const SizedBox(height: 20),
-                BalanceCard(summary: summary),
+                BalanceCard(
+                  summary: summary,
+                  hideBalance: hideBalance,
+                  onToggle: () => context.read<PrivacyCubit>().toggle(),
+                ),
                 const SizedBox(height: 20),
                 Row(
                   children: [
@@ -167,7 +173,10 @@ class _WalletHomePageState extends State<WalletHomePage> {
                   const _EmptyMovements()
                 else
                   for (final movement in summary.movements) ...[
-                    MovementTile(movement: movement),
+                    MovementTile(
+                      movement: movement,
+                      hideAmount: hideBalance,
+                    ),
                     const SizedBox(height: 10),
                   ],
                 const SizedBox(height: 12),

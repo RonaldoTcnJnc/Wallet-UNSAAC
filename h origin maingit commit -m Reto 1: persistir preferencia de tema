@@ -1,0 +1,14 @@
+ lib/app.dart                                                 |  19 [32m++++[m[31m-[m
+ lib/core/theme/theme_cubit.dart                              |  30 [32m+++++[m[31m--[m
+ lib/core/theme/theme_preferences.dart                        |  42 [32m++++++++++[m
+ lib/features/wallet/presentation/pages/wallet_home_page.dart |  18 [32m+++[m[31m--[m
+ lib/main.dart                                                |  20 [32m+++[m[31m--[m
+ linux/flutter/generated_plugins.cmake                        |   1 [32m+[m
+ macos/Flutter/GeneratedPluginRegistrant.swift                |   2 [32m+[m
+ pubspec.lock                                                 | 177 [32m+++++++++++++++++++++++++++++++++++++[m[31m----[m
+ pubspec.yaml                                                 |   1 [32m+[m
+ test/theme_cubit_test.dart                                   |  58 [32m+++++++++++[m[31m---[m
+ test/theme_preferences_test.dart                             |  65 [32m+++++++++++++++[m
+ test/widget_test.dart                                        |  44 [32m+++++++[m[31m---[m
+ windows/flutter/generated_plugins.cmake                      |   1 [32m+[m
+ 13 files changed, 419 insertions(+), 59 deletions(-)
